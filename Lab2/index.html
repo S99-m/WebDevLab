@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Async Weather Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+        }
+
+        body {
+            background-color: #1a2a5e;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        
+        #main {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: stretch;
+        }
+
+        
+        #search-main-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        
+        #weather-info-container {
+            flex: 1;
+            background-color: #fff;
+            color: #222;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        #search-city,
+        #search-history {
+            color: #222;
+        }
+
+        #search-city h3,
+        #search-history h3,
+        #weather-info-container h3 {
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        #search-city form {
+            display: flex;
+            gap: 8px;
+        }
+
+        #search-city input[type="text"] {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        #search-city button {
+            padding: 6px 16px;
+            background-color: #e85d04;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        #search-city button:hover {
+            background-color: #d44f00;
+        }
+
+        #searched-cities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        #searched-cities div {
+            background-color: #e85d04;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+
+        #city-weather {
+            font-size: 0.88rem;
+            
+        }
+
+        #city-weather div > div {
+            border-left: solid #e85d04;
+            display: flex;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            color: #333;
+            background-color: #f9f9fa;
+        }
+        #city-weather div > div > span:first-child{
+            padding-left: 5px;}
+        #city-weather div > div > span:last-child{
+            padding-right: 5px;
+
+        }
+
+        #city-weather div > div:last-child {
+            border-bottom: none;
+        }
+
+
+    </style>
+</head>
+<body>
+
+
+    <h1>⛅Async Weather Tracker</h1>
+    <div id="main">
+    <div id="search-main-container">
+        <div id="search-city">
+            <h3>Search City</h3>
+            <form action="">
+                <input type="text" name="" id="city">
+                <button type="submit">Search</button>
+            </form>
+
+
+        </div>
+        <div id="search-history">
+            <h3>Search History</h3>
+
+            <div id="searched-cities">
+
+            </div>
+        </div>
+
+
+    </div>
+    <div id="weather-info-container">
+        <h3>Weather Info</h3>
+        <div id="city-weather">
+
+        </div>
+    </div>
+    </div>
+
+    <script>
+        let API_KEY = "3d1d468833c587b82d07169723a04a07"
+        let form = document.querySelector('form')
+        let city = document.querySelector('#city')
+        let weather = document.querySelector('#city-weather')
+        let searchedcities = document.querySelector('#searched-cities')
+        let searchHistory =[];
+
+
+        async function getWeather(city){
+            let response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`)
+
+            let data = await response.json()
+            if (data.cod !== 200) {
+            weather.innerHTML = `<p style="color:red;">City not found. Try again.</p>`
+            return;
+        }
+
+            let card = document.createElement('div')
+            card.innerHTML = `<div><span>City</span><span>${data.name},${data.sys.country}</span></div>
+                                <div><span>Temp</span><span>${data.main.temp}°C</span></div>
+                                <div><span>Weather</span><span>${data.weather[0].main}</span></div>
+                                <div><span>Humidity</span><span>${data.main.humidity}</span></div>
+                                <div><span>Wind</span><span>${data.wind.speed}</span></div>`
+            weather.innerHTML=''
+            weather.append(card)
+
+            if(!searchHistory.includes(data.name)){
+            searchHistory.push(data.name)
+            localStorage.setItem("CityNames", JSON.stringify(searchHistory))
+
+            weatherHistory()
+        }}
+
+        function weatherHistory(){
+            searchedcities.innerHTML = ''
+            searchHistory.forEach(city => {
+            let city_card = document.createElement('div');
+            city_card.textContent = city;
+            city_card.addEventListener('click', () => {
+            getWeather(city);
+            });
+
+            searchedcities.append(city_card);
+        });
+            }
+        form.addEventListener('submit',(e)=>{
+            e.preventDefault()
+            getWeather(city.value)
+            city.value=''
+        })
+
+
+    </script>
+</body>
+</html>
